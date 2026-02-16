@@ -1,0 +1,6 @@
+Favicon placeholder
+
+A real favicon binary file should be added later at:
+frontend/public/favicon.ico
+
+This placeholder exists because binary icon generation is outside this task.
