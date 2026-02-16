@@ -1,17 +1,31 @@
-module.exports = function authMiddleware(req, res, next) {
-  const authorization = req.headers.authorization;
+const { verifyToken } = require('../utils/jwt');
 
-  if (!authorization) {
-    return res.status(401).json({ error: "UNAUTHORIZED" });
+function authMiddleware(req, res, next) {
+  const authHeader = req.headers.authorization;
+
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'UNAUTHORIZED' });
   }
 
-  const parts = authorization.split(" ");
+  const token = authHeader.slice('Bearer '.length).trim();
 
-  if (parts.length !== 2 || parts[0] !== "Bearer" || !parts[1]) {
-    return res.status(401).json({ error: "UNAUTHORIZED" });
+  if (!token) {
+    return res.status(401).json({ error: 'UNAUTHORIZED' });
   }
 
-  req.user = { id: "stub_user" };
+  try {
+    const decoded = verifyToken(token);
 
-  return next();
-};
+    if (!decoded || !decoded.userId) {
+      return res.status(401).json({ error: 'UNAUTHORIZED' });
+    }
+
+    req.user = { id: decoded.userId };
+    return next();
+  } catch (error) {
+    return res.status(401).json({ error: 'UNAUTHORIZED' });
+  }
+}
+
+module.exports = authMiddleware;
+
